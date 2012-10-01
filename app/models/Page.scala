@@ -3,8 +3,9 @@ package models
 import io.{Source, Codec}
 import java.nio.charset.Charset
 import scalax.io.Resource
-import java.io.{IOException, File}
+import java.io.{RandomAccessFile, IOException, File}
 import org.fusesource.scalamd.Markdown
+import play.api.libs.Files
 
 case class Page(name: String, markdown: String) {
   def toHtml = Markdown(markdown)
@@ -22,8 +23,7 @@ object Page {
     throw new IOException("cannot create directory: " + dir)
 
   def load(file: File, name: String): Page = {
-    val source = Source.fromFile(file)(codec)
-    val markdown = source.mkString
+    val markdown = Files.readFile(file)
     Page(name, markdown)
   }
 
@@ -31,8 +31,7 @@ object Page {
     val file = nameFile(page.name)
     checkDirectory(file.getParentFile)
 
-    val resource = Resource.fromFile(file)
-    resource.write(page.markdown)(codec)
+    Files.writeFile(file, page.markdown)
     page.copy()
   }
 
